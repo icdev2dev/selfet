@@ -1,10 +1,42 @@
 from typing import List, Dict
+from groq import Groq
+from openai import OpenAI
+
 
 FUNCTIONS_TYPE_MAP = {
     'str': "string",
     'int': "integer",
     'List': 'array'
 }
+
+
+class ChatAPIWrapper:
+    def __init__(self, client):
+        self.chat = self.Chat(client.chat)
+
+    class Chat:
+        def __init__(self, chat):
+            self.completions = chat.completions
+
+
+groq_chat = ChatAPIWrapper(client=Groq())
+openai_chat = ChatAPIWrapper(client=OpenAI())
+
+
+
+def add_enum_to_param(tools, function_name, param, enum):
+    for tool in tools:
+        if tool['type'] == 'function' and tool['function']['name'] == function_name:
+            if param in  tool['function']['parameters']['properties'].keys():
+                tool['function']['parameters']['properties'][param]['enum'] = enum
+                
+            else:
+                print(f"{param} not in function {function_name}")
+                break
+            
+            break
+    return tools
+
 
 def include_one_tools_function(tools_functions, ret_val=[])-> List[Dict] :
 
@@ -30,6 +62,12 @@ def include_all_tools_functions(tools_functions, ret_val=[])-> List[Dict] :
             "type": "function", 
             "function": tools_functions[tool_function_name]
         })
+
+    
+    for val in ret_val:
+        del val['function']['function']
+            
+
 
     return ret_val
 
@@ -58,12 +96,16 @@ def tools_function(tools_functions):
                 function['parameters']['properties'][input_arg_name]['type'] = ip_type
 
                 if ip_type == 'array':
+                    
+                    print('in array')
                     function['parameters']['properties'][input_arg_name]['items'] = {}
-                    ip_item_type = raw_annotation.__origin__.__args__[0].__name__
-                    if ip_item_type in FUNCTIONS_TYPE_MAP:
-                        function['parameters']['properties'][input_arg_name]['items']['type'] = FUNCTIONS_TYPE_MAP[ip_item_type]
-                    else:
-                        function['parameters']['properties'][input_arg_name]['items']['type'] = ip_item_type
+                    function['parameters']['properties'][input_arg_name]['items']['type'] = 'str'
+
+ #                   ip_item_type = raw_annotation.__origin__.__name__
+ #                   if ip_item_type in FUNCTIONS_TYPE_MAP:
+ #                       function['parameters']['properties'][input_arg_name]['items']['type'] = FUNCTIONS_TYPE_MAP[ip_item_type]
+ #                   else:
+ #                       function['parameters']['properties'][input_arg_name]['items']['type'] = ip_item_type
 
             else:
                 ip_type =  raw_annotation.__origin__.__name__

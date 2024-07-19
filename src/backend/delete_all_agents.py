@@ -1,0 +1,3 @@
+from bmodels import delete_all_registered_agents
+
+delete_all_registered_agents()
