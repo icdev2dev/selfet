@@ -1,34 +1,37 @@
 import yaml
 
-from bmodels import AutoExecAssistant
-from bmodels import AutoExecListenMessage, AutoExecSubThread
 
-from bmodels.assistants import list_registered_agents_in_registry as list_registered_agents
-from bmodels import create_registered_agent_by_name as create_registered_agent, delete_registered_agent_by_name as delete_registered_agent
 
-from bmodels import create_registered_agents_from_yaml, delete_all_registered_agents
 from bmodels.messages import AutoExecSubMessage
+from bmodels.messages import AutoExecListenMessage
+
+from bmodels.threads.sub import AutoExecSubThread
 
 
-
+from bmodels import get_agents, get_agent_details, delete_all_registered_agents
+from bmodels import create_registered_agents_from_yaml
+from bmodels import list_registered_agents_in_registry as list_registered_agents
 
 from bmodels import find_communication_channel_for_agent
 from typing import List
 
 def list_subscription_threads() -> List[AutoExecSubThread]:
-    return AutoExecSubThread.list()
+    return [AutoExecSubThread.retrieve(thread_id=x.thread_id) for x in AutoExecSubThread.list()]
 
 def create_subscription_thread() -> AutoExecSubThread:
-    return AutoExecSubThread.create()
+    return AutoExecSubThread.create(originator="system")
+
 
 def retrieve_subscription_thread(thread_id) -> AutoExecSubThread:
     return AutoExecSubThread.retrieve(thread_id=thread_id)
 
 def delete_subscription_message(thread_id, message_id):
+
     return AutoExecSubMessage.delete(thread_id=thread_id, message_id=message_id )
 
 
-def delete_all_subscription_threads(): 
+def delete_all_subscription_threads():
+
     as_threads = AutoExecSubThread.list()
     print(as_threads)
     for as_thread in as_threads:
@@ -36,17 +39,20 @@ def delete_all_subscription_threads():
     print(AutoExecSubThread.list())
 
 def send_request_to_agent(common_name, request): 
+
     communication_channel = find_communication_channel_for_agent(common_name=common_name)
     if communication_channel:
-        post_message_on_communication_channel(communication_channel, request)
+        post_message_on_communication_channel(communication_channel, request, class_type="user_request")
 
 
-def post_message_on_communication_channel (communication_channel, request):
+def post_message_on_communication_channel (communication_channel, request, class_type, originator="user"):
 
     destination_thread_id = AutoExecSubThread.list()[0].thread_id
     AutoExecListenMessage.create(thread_id=communication_channel, 
                                  content=request, 
-                                 destination_thread_id= destination_thread_id)
+                                 destination_thread_id= destination_thread_id, 
+                                 class_type=class_type,
+                                 originator=originator)
 
 
 

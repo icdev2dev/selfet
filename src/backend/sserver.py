@@ -1,10 +1,9 @@
-import yaml
 
-from flask import Flask, request,jsonify
+from flask import Flask
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
-from flask_routing import configure_routing
+from routing.flask_routing import configure_routing
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes

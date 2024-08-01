@@ -18,6 +18,10 @@ class AutoExecSubMessage(BaseMessage):
     originator:Optional[str] = Field(default="")
     
 
+def post_message_on_subscription_channel(thread_id, content, name):
+    AutoExecSubMessage.create(thread_id=thread_id, content=content, originator=name)
+
+
 
 class AutoExecListenMessage (BaseMessage):
     """

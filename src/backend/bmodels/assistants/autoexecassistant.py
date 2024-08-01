@@ -1,16 +1,19 @@
-from typing import Optional, List, Type, TypeVar
+from typing import Optional, Type, TypeVar
+from pydantic import Field
 import json
-from pydantic import Field, BaseModel, model_serializer
-from .threads.listen import AutoExecListenThread
-from .threads.system import AutoExecAssistantRegistry
+import yaml
+
+from openai_session_handler.models.assistants.baseassistant import BaseAssistant
+from openai_session_handler.models.threads.basethread import BaseThread
+
+from ..threads.listen import AutoExecListenThread
+from ..threads.system import AutoExecAssistantRegistry
+
 
 import openai
-from openai_session_handler.models.threads.basethread import BaseThread
-from openai_session_handler.models.assistants.baseassistant import BaseAssistant
 
-from openai_session_handler.models.beta import register_composite_fields_and_type
+T = TypeVar('T', bound="AutoExecAssistantRegistry")
 
-T = TypeVar('T', bound='AutoExecAssistantRegistry')
 
 
 def get_registry_thread() -> BaseThread:
@@ -56,7 +59,47 @@ def delete_registered_agent_from_registry(id):
                 if value['id'] == id:
                     registry_thread.delete_message(message_id=message_id)
                     break
+
+
+
+def create_registered_agent_by_name(name, instructions, description): 
+
+    instructions = f" " + instructions
+    
+    AutoExecAssistant.create(name=name, instructions=instructions, description=description)
+
+
+def delete_registered_agent_by_name(name): 
+    idd_assistant = None
+
+    list_registered_assistants = AutoExecAssistant.list()
+
+    for registered_assistant in list_registered_assistants:
+        if registered_assistant.name == name:
+            idd_assistant = registered_assistant
+            break
         
+    if idd_assistant:
+        AutoExecAssistant.delete(idd_assistant.id)        
+
+
+def create_registered_agents_from_yaml(yaml_file):
+    with open(yaml_file, "r") as file: 
+        yaml_data = yaml.safe_load(file)
+        for assistant in yaml_data['assistants']:
+            name = assistant['name']
+            description = assistant['role']
+            instructions = assistant['background']
+
+            create_registered_agent_by_name(name=name, description=description, instructions=instructions)
+
+
+def delete_all_registered_agents() :
+
+    for agent in AutoExecAssistant.list():
+        print(f"Now deleting {agent.id}")
+        AutoExecAssistant.delete(agent.id)
+    print("Done deleting ALL agents")
 
 
 
@@ -119,12 +162,4 @@ class AutoExecAssistant(BaseAssistant):
         elif (self.sub_thread_2 == thread_id):
             self.update(sub_thread_2 = "", sub_thread_2_hwm = "")
 
-
-
-
-
-
-
-
-    
 

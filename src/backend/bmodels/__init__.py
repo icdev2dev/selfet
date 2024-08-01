@@ -1,52 +1,34 @@
 import json
-from .assistants import AutoExecAssistant, get_registry_thread
-from .messages import AutoExecListenMessage
-from .messages import AutoExecSubMessage
-from .threads.sub import AutoExecSubThread
+from .assistants.autoexecassistant import AutoExecAssistant, get_registry_thread, delete_all_registered_agents
+from .assistants.autoexecassistant import create_registered_agents_from_yaml, list_registered_agents_in_registry
+
+
 from .threads.listen import AutoExecListenThread
 
 
-import yaml
+def get_agents() : 
+    return    [x.name for x in AutoExecAssistant.list()]
 
 
+def get_agent_details(agent_name) : 
 
-def create_registered_agents_from_yaml(yaml_file):
-    with open(yaml_file, "r") as file: 
-        yaml_data = yaml.safe_load(file)
-        for assistant in yaml_data['assistants']:
-            name = assistant['name']
-            description = assistant['role']
-            instructions = assistant['background']
-
-            create_registered_agent_by_name(name=name, description=description, instructions=instructions)
-
-
-def delete_all_registered_agents() :
+    agent_details = {
+    }
 
     for agent in AutoExecAssistant.list():
-        print(f"Now deleting {agent.id}")
-        AutoExecAssistant.delete(agent.id)
-    print("Done deleting ALL agents")
+        if agent.name == agent_name: 
+            agent_details['role'] = agent.description
+            agent_details['instructions'] = agent.instructions
+            agent_details['communication_channel'] = find_communication_channel_for_agent(common_name=agent_name)
 
-def create_registered_agent_by_name(name, instructions, description): 
-
-    instructions = f" " + instructions
-    
-    AutoExecAssistant.create(name=name, instructions=instructions, description=description)
-
-
-def delete_registered_agent_by_name(name): 
-    idd_assistant = None
-
-    list_registered_assistants = AutoExecAssistant.list()
-
-    for registered_assistant in list_registered_assistants:
-        if registered_assistant.name == name:
-            idd_assistant = registered_assistant
+            if agent_details['communication_channel']:
+                communication_channel_thread = AutoExecListenThread.retrieve(agent_details['communication_channel'])
+#                print(communication_channel_thread)
+                num_messages_in_communication_channel = get_number_of_messages_in_communication_channel(communication_channel_thread=communication_channel_thread)
+                agent_details['num_messages_in_communication_channel'] = num_messages_in_communication_channel
             break
-        
-    if idd_assistant:
-        AutoExecAssistant.delete(idd_assistant.id)        
+    
+    return agent_details
 
 
 
@@ -63,4 +45,33 @@ def find_communication_channel_for_agent(common_name):
                 return None           
         else:
             return None
+
+
+
+def get_number_of_messages_in_communication_channel(communication_channel_thread:AutoExecListenThread) -> int:
+
+    limit_max_msgs = 3
+    after = None
+
+    countMsgs = 0
+
+    while True:
+        msgs = communication_channel_thread.list_messages(limit=limit_max_msgs, after=after )
+        if msgs:
+            if len(msgs) == limit_max_msgs:
+                after = msgs[-1].id
+                countMsgs = countMsgs + limit_max_msgs
+            else: 
+                countMsgs = countMsgs + len(msgs)
+                break
+        else:
+            break
+
+    print(countMsgs)
+
+
+    return countMsgs
+
+
+
 
