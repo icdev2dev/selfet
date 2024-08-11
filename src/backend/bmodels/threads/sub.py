@@ -65,6 +65,7 @@ class AutoExecSubThreadTracker(BaseAssistant):
 
 class AutoExecSubThread(BaseThread):
     originator:Optional[str] = Field(default="")
+    max_msgs_on_thread:Optional[str] = Field(default="20")
 
 
     @classmethod
@@ -97,8 +98,29 @@ class AutoExecSubThread(BaseThread):
             return []
         else:
             return AutoExecSubThreadTracker.list()[0].autoexecsubthreads
-        
-    def list_messages(self, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> List[AutoExecSubMessage]:
-        return    [from_message_to_autoexecsubmessage(x)  for x in  super().list_messages(limit, order, after, before)]
+
+
+    def number_of_messages(self, limit: int = 100, order: str = "desc", after: str = None, before: str = None ) -> int:
+        return len(self.list_messages())
+
+
+    def list_messages(self, limit: int = 100, order: str = "desc", after: str = None, before: str = None) -> List[AutoExecSubMessage]:
+
+        list_sub_messages = []
+
+        while True:
+            list_msg_msgs = super().list_messages(limit, order, after, before)
+            if len(list_msg_msgs) == 0:
+                break
+            else:
+                for msg in list_msg_msgs:
+                    list_sub_messages.append(from_message_to_autoexecsubmessage(msg))
+
+                if len(list_msg_msgs) == limit:
+                    after = list_msg_msgs[-1].id
+                else:
+                    break
+       
+        return list_sub_messages
     
       

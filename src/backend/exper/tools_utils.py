@@ -56,20 +56,17 @@ def include_all_tools_functions(tools_functions, ret_val=[])-> List[Dict] :
 
     import copy
     tools_functions = copy.deepcopy(tools_functions)
-    for tool_function_name in tools_functions.keys():
-        
+    for tool_function_name in tools_functions.keys():        
         ret_val.append( {
             "type": "function", 
             "function": tools_functions[tool_function_name]
         })
 
-    
     for val in ret_val:
         del val['function']['function']
-            
-
 
     return ret_val
+
 
 def tools_function(tools_functions): 
     def wrapper(func):

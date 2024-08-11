@@ -21,7 +21,9 @@ Even in your description, please prefix with '@' on your name.
 Also others will also use the same format 
 to identify themselves. Therefore you can respond to messages in a personalized way; if the 
 situation calls for it. Obviously when you refer to others in the team, you should also prefix 
-their names with a '@'
+their names with a '@'. 
+
+You SHOULD obviously **REFRAIN** from subsequently addressing yourself in the message.
 """
 
 def team_composition(): 
@@ -75,16 +77,15 @@ class AsyncAssistant:
             else : 
                 try : 
                     self.process_listen_thread ()
-
                 except openai.NotFoundError as e:
                     print(f"{e}")
                     break
                 except ( openai.APITimeoutError , openai.APIConnectionError) as e:
-                    print("API Error")
+                    print("API Error in call")
                     raise APIException from e        
             await asyncio.sleep(10)
 
-    def process_listen_msgs(self,assistant, thread_msgs,chat_model = groq_chat, model="llama-3.1-70b-versatile") :
+    def process_listen_msgs(self,assistant, thread_msgs,chat_model = groq_chat, model="llama-3.1-8b-instant") :
 
         name = assistant.name
 
@@ -109,13 +110,13 @@ class AsyncAssistant:
             messages=[]
             
             messages.append ({'role': 'system',
-                            "content": f"You are {name}. \n" 
+                            "content": f"YOU are {name}. PLEASE USE **{name}** when you introduce yourself. In every message please mention your name which is **{name}** \n" 
                             })        
             messages.append ({'role': 'system',
                             "content": assistant.instructions 
                             })
             messages.append ({'role': 'system',
-                            "content": GENERAL_COMMUNICATION_STYLE 
+                            "content": f"YOU are {name}. Always start with @{name} here. {GENERAL_COMMUNICATION_STYLE}" 
                             })
             messages.append ({'role': 'system',
                             "content": team_composition() 
@@ -157,7 +158,6 @@ class AsyncAssistant:
                 if process_from_begin == True:
                     thread_msgs = thread.list_messages(limit=limit, order="asc")
                     while len(thread_msgs) > 0:
-                        print("batch")
                         after = thread_msgs[-1].id                        
                         process_in_seq(assistant, thread_msgs )
                         thread.set_hwm(after)
@@ -185,6 +185,6 @@ class AsyncAssistant:
                     else: 
                         pass
             except ( openai.APITimeoutError , openai.APIConnectionError) as e:
-                print("API Error")
+                print("API Error in process listen thread")
                 raise APIException from e
             

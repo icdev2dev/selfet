@@ -10,7 +10,7 @@ from bmodels.threads.sub import AutoExecSubThread
 
 from bmodels import get_agents, get_agent_details, delete_all_registered_agents
 from bmodels import create_registered_agents_from_yaml
-from bmodels import list_registered_agents_in_registry as list_registered_agents
+from bmodels import list_registered_agents_in_registry as get_registered_agents
 
 from bmodels import find_communication_channel_for_agent
 from typing import List
@@ -25,9 +25,40 @@ def create_subscription_thread() -> AutoExecSubThread:
 def retrieve_subscription_thread(thread_id) -> AutoExecSubThread:
     return AutoExecSubThread.retrieve(thread_id=thread_id)
 
-def delete_subscription_message(thread_id, message_id):
 
+
+def get_conversation_history(index:int=0):
+    subscription_threads = list_subscription_threads()
+    if len(subscription_threads) > index:
+        subscription_thread = subscription_threads[index]
+        messages = subscription_thread.list_messages(limit=100, order="asc")
+        for message in messages:
+            if message.originator == "system_counts":
+                pass
+            else:
+                print(f"********************** {message.originator}***********************")
+                print(f"{message.content[0]['text'].value}")
+
+
+
+
+
+def delete_subscription_message(thread_id, message_id):
     return AutoExecSubMessage.delete(thread_id=thread_id, message_id=message_id )
+
+
+def delete_last_message_in_subscription_thread(index:int=0):
+    subscription_threads = list_subscription_threads()
+    if len(subscription_threads) > index:
+        subscription_thread = subscription_threads[index]
+        messages = subscription_thread.list_messages()
+        if len(messages) > 0 :
+            message = messages[-1]
+            delete_subscription_message(thread_id=subscription_thread.id, message_id=message.id)
+
+
+def delete_last_message_in_subscription_thread_from_agent(agent_name, index:int=0):
+    pass
 
 
 def delete_all_subscription_threads():
