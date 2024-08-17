@@ -5,12 +5,12 @@ This project is a demonstration of a framework to build out autonomous agents.
 Broadly I define autonomous agents as agents that work independently; but co-operatively; 
 with other agents to accomplish certain goals. 
 
-We will use the example of using three persona to illustrate the concept of autonomous 
+We will use the example of using three person to illustrate the concept of autonomous 
 agents before diving deeper into code.
 
 # High Level Conceptual Architecture
 
-## Three Personas
+## Three Persons
 Let's assume that we have these three individuals working in a company : 
 
 (a) Aileen -- who is a trend identifier
@@ -38,15 +38,15 @@ a hard decision is made to close the conversation.
 
 ## Some Key Callouts
 
-### Number of Personas
-Obviously the number of the personas should not be fixed. 
+### Number of Persons
+Obviously the number of the persons should not be fixed. 
 
 ### Common Communication Channel/s 
 The personas should know where to read from and where to write to. In most cases (but not all), 
 the reading and writing is done from the same communication channel (aka subscription thread).
 
 ### Personal Communication Channel 
-There must a channel that an agent should know where other agents/system can send a message that 
+There must be a channel that an agent should know where other agents/system can send a message that 
 is exclusive for their use. This is called Personal Communication Channel (aka pcc, listen thread).
 
 ### Agent Registry
@@ -78,7 +78,7 @@ Open ORIGINAL terminal to source your virtual environment and API keys
 >>> create_subscription_thread()
 
 ## bserver -- PART II Main Run Time
-In ANOTHER terminal , start bserver (which is expected to run forever) with venv and sourced API KEYS
+In ANOTHER terminal, start bserver (which is expected to run forever) with venv and sourced API KEYS
 and observe output
 python bserver.py
 
