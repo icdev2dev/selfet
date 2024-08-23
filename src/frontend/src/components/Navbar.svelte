@@ -2,15 +2,18 @@
 <script>
     import { Link } from "svelte-routing";
     import Home from "../pages/Home.svelte";
-    import AddedHome from "../pages/AddedHome.svelte";
+    import ConversationsPage from "../pages/Conversations.svelte";
+    import AgentsPage from "../pages/Agents.svelte";
+    
     import Logout from "./logout.svelte";
 
     // The tabs MUST be in sync with PrivateGuard
 
     let tabs = [
         { name: 'Home', route: '/', component: Home, path: "/" },
-        { name: 'AddedHome', route: '/addedhome', component: AddedHome, path: "/addedhome" }
-    ];
+        { name: 'Conversations', route: '/conversations', component: ConversationsPage, path: "/conversations"},
+        { name: 'Agents', route: '/agents', component: AgentsPage, path: "/agents"}
+    ]
 
 
 </script>

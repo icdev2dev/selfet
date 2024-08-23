@@ -65,7 +65,13 @@ class AutoExecSubThreadTracker(BaseAssistant):
 
 class AutoExecSubThread(BaseThread):
     originator:Optional[str] = Field(default="")
-    max_msgs_on_thread:Optional[str] = Field(default="20")
+    max_msgs_on_thread:Optional[str] = Field(default="5")
+    name:Optional[str] = Field(default="")
+    is_active:Optional[str] = Field(default="Y")
+    is_archived:Optional[str] = Field(default="N")
+
+    hwm:Optional[str] = Field(default="")
+    conversation_type:Optional[str] = Field(default="MMA")
 
 
     @classmethod
@@ -98,6 +104,21 @@ class AutoExecSubThread(BaseThread):
             return []
         else:
             return AutoExecSubThreadTracker.list()[0].autoexecsubthreads
+
+
+    def set_hwm (self, hwm: str) :
+        self.hwm = hwm
+        self.generic_update_metadata()
+
+    def set_conversation_type(self, conversation_type:str):
+        self.conversation_type = conversation_type
+        self.generic_update_metadata()
+
+
+    def make_subthread_inactive(self):
+        self.is_active = "N"
+        self.generic_update_metadata()
+    
 
 
     def number_of_messages(self, limit: int = 100, order: str = "desc", after: str = None, before: str = None ) -> int:

@@ -5,8 +5,11 @@
 
     import { Route, Router, Link, navigate } from "svelte-routing";
     import Home from "../pages/Home.svelte";
-    import AddedHome from "../pages/AddedHome.svelte";
+    import ConversationsPage from "../pages/Conversations.svelte";
+    import AgentsPage from "../pages/Agents.svelte";
+
     import Navbar from "../components/Navbar.svelte";
+
 
     $: userRole = (JSON.parse(localStorage.getItem('user')))?.role
 
@@ -18,7 +21,8 @@
     
     let tabs = [
         { name: 'Home', route: '/', component: Home, path: "/" },
-        { name: 'AddedHome', route: '/addedhome', component: AddedHome, path: "/addedhome"}
+        { name: 'Conversations', route: '/conversations', component: ConversationsPage, path: "/conversations"},
+        { name: 'Agents', route: '/agents', component: AgentsPage, path: "/agents"}
     ]
 
 </script>
@@ -29,9 +33,22 @@
         <Navbar></Navbar>
     {/if}
 
+
+    <!-- Redirect to Active Conversations when navigating to /conversations -->
+    <Route path="/conversations" component={() => {
+        navigate("/conversations/activeConversations");
+        return null; // Return null since we're only redirecting
+    }} />
+    
+
     {#each tabs as tab}
         <Route path={tab.path} component={tab.component}></Route>
     {/each}
+
+
+
+    <Route path="/conversations/*" component={ConversationsPage} />
+
 </div>
 
 

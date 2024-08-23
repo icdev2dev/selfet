@@ -9,7 +9,7 @@ from bmodels.exceptions import APIException
 from bmodels.messages import AutoExecSubMessage
 
 
-from tools_utils import groq_chat
+from tools_utils import groq_chat, openai_chat
 
 
 
@@ -62,9 +62,12 @@ def team_composition():
 
 class AsyncAssistant: 
    
-    def __init__(self, assistant_id, entity_list):
+    def __init__(self, assistant_id, entity_list, assistant_watch_sleep_time, socketio):
         self.assistant_id = assistant_id
         self.entity_list = entity_list
+        self.assistant_watch_sleep_time = assistant_watch_sleep_time
+        self.socketio = socketio
+
 
         self.autoexecassistant = AutoExecAssistant.retrieve(assistant_id=self.assistant_id)
         self.listen_thread = AutoExecListenThread.retrieve(thread_id=self.autoexecassistant.listen_thread)
@@ -83,14 +86,14 @@ class AsyncAssistant:
                 except ( openai.APITimeoutError , openai.APIConnectionError) as e:
                     print("API Error in call")
                     raise APIException from e        
-            await asyncio.sleep(10)
+            await asyncio.sleep(self.assistant_watch_sleep_time)
 
-    def process_listen_msgs(self,assistant, thread_msgs,chat_model = groq_chat, model="llama-3.1-8b-instant") :
+#    def process_listen_msgs(self,assistant, thread_msgs,chat_model = groq_chat, model="llama-3.1-70b-versatile") :
+    def process_listen_msgs(self,assistant, thread_msgs,chat_model = openai_chat, model="gpt-4o-mini") :
 
         name = assistant.name
 
-        print(name)
-        print(chat_model)
+ #       print(name)
 
         for thread_msg in thread_msgs:
 
@@ -98,6 +101,8 @@ class AsyncAssistant:
             print(class_type)
 
             destination_thread_id = thread_msg.destination_thread_id
+            print(destination_thread_id)
+            
             as_thread = AutoExecSubThread.retrieve(thread_id=destination_thread_id)
 
             previous_messages = []
@@ -139,7 +144,8 @@ class AsyncAssistant:
 
 
             AutoExecSubMessage.create(thread_id=destination_thread_id, content=second_response.choices[0].message.content, originator=name)
-
+            self.socketio.emit("newMessageAdded", {})
+            
 
 
 

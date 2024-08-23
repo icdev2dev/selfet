@@ -31,7 +31,7 @@
     {#each $agents as agent}
 
     <Hoverable let:hovering={active}>
-        <div class:active     on:mouseenter={() => coveredHoverAgent = agent} role="tooltip" on:mouseleave={() => coveredHoverAgent = null}>
+        <div class:active     on:mouseenter={() => coveredHoverAgent = agent.name} role="tooltip" on:mouseleave={() => coveredHoverAgent = null}>
             {#if active && isHoverable && currentAgentDetails}
 
                 <table>
@@ -40,23 +40,11 @@
                             { JSON.parse (JSON.stringify((currentAgentDetails))).instructions }
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            Chat one on one with {agent}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <textarea>
-                                
-                            </textarea>
-                        </td>
-                    </tr>
 
                 </table>
                         
             {:else}
-            {agent}
+            {agent.name}
             {/if}
         </div>
     </Hoverable>

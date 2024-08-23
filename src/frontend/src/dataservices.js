@@ -7,7 +7,8 @@ export const auth = writable(
 )
 
 export const agents = writable([])
-
+export const activeConversations = writable([])
+export const inactiveConversations = writable([])
 
 
 export const listPupils = writable([]);
@@ -43,12 +44,118 @@ export async function loginValidation(user_id, password){
 }
 
 
+export async function getInactiveConversations() {
+    const response = await fetch(url+ `/inactive_conversations`);
+    if (response.ok) {
+        const data = await response.json()
+        inactiveConversations.set(data)
+    } else {
+        inactiveConversations.set(['error fetching active conversations'])
+    }    
+}
+
+export async function getActiveConversations() {
+    const response = await fetch(url+ `/active_conversations`);
+    if (response.ok) {
+        const data = await response.json()
+        activeConversations.set(data)
+        console.log(activeConversations)
+    } else {
+        activeConversations.set(['error fetching active conversations'])
+    }    
+}
+
+
+export async function setConversationType(thread_id, conversation_type) {
+    try {
+        const response = await fetch(url + "/set_conversation_type", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                thread_id: thread_id,
+                conversation_type: conversation_type
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to set conversation type');
+        }
+        return "ok"
+
+    } catch(err) {
+        return "error setting conversation type"
+
+    }
+}
+
+
+export async function createConversation(name, max_msgs_on_thread) {
+    try {
+        const response = await fetch(url + "/create_conversation", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                max_msgs_on_thread: max_msgs_on_thread
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch active conversations');
+        }
+        return "ok"
+    }  catch (err) {
+        return "error creating conversation"
+    }
+}
+
+export async function deleteAllInactiveConversations() {
+
+    try {
+        const response = await fetch(url + "/delete_all_inactive_conversations", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Unable to delete all inactive conversations');
+        }
+        return "ok"
+    }  catch (err) {
+        return "error creating conversation"
+    }
+
+}
+
+
+export async function getConversation(conversationId) {
+    const response = await fetch(url+  `/conversation/` + conversationId)
+
+    if (response.ok) {
+        const data = await response.json()
+        return data        
+    } else {
+        return ("Error fetching data")
+    }
+}
+
+
+
+
+
 export async function get_agents() {
     const response = await fetch(url+ `/agents`);
 
     if (response.ok) {
-        const data = await response.json()
-        
+        const data = await response.json()        
         agents.set(data)
         console.log(agents)
     } else {
@@ -71,23 +178,34 @@ export async function get_agent_details(agent_name) {
 }
 
 
+export async function postMessage(request, originator, index=0) {
+
+    const response = await fetch(url+'/post_message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            real_request: request,
+            originator: originator,
+            index: index
+        })
+    })
+
+    const json = await response.json()
+    return json
 
 
-
-
-
-
-
-
-
-
-
+}
 
 
 
 
 export async function fetchAllData() {
         await get_agents()
+        await getActiveConversations()
+        await getInactiveConversations()
+
         
     //    await get_models()
         

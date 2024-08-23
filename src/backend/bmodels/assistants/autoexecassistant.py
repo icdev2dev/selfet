@@ -35,14 +35,30 @@ def list_registered_agents_in_registry():
         if registry_thread: 
             return [msg.content[0].text.value for msg in registry_thread.list_messages()]
         
+
+def list_human_agents_in_registry():
+        registry_thread = get_registry_thread()
+        human_agents = []
+
+        if registry_thread: 
+             for msg in registry_thread.list_messages():
+                  value = msg.content[0].text.value
+                  jvalue = json.loads(value)
+                  if jvalue['real_role'] == 'human':
+                       human_agents.append(value)
+            
+        
+        return human_agents
+
         
 
-def add_registered_agent_in_registry(id, common_name, communication_channel):
+def add_registered_agent_in_registry(id, real_role, common_name, communication_channel):
         registry_thread = get_registry_thread()
         if registry_thread: 
     
             data = json.dumps({"entity_type": "assistant", 
                        "id": id, 
+                       "real_role": real_role,
                        "common_name": common_name,
                        "communication_channel": communication_channel
                        })
@@ -62,11 +78,25 @@ def delete_registered_agent_from_registry(id):
 
 
 
-def create_registered_agent_by_name(name, instructions, description): 
+def create_registered_agent_by_name(name, instructions, description, real_provider, real_model, real_role): 
 
     instructions = f" " + instructions
     
-    AutoExecAssistant.create(name=name, instructions=instructions, description=description)
+
+    kwargs = {
+         'name': name,
+         'instructions': instructions,
+         'description' : description
+    }
+
+    if real_provider:
+         kwargs['real_provider'] = real_provider
+    if real_model:
+         kwargs['real_model'] = real_model
+    if real_role:
+         kwargs['real_role'] = real_role
+
+    AutoExecAssistant.create(**kwargs)
 
 
 def delete_registered_agent_by_name(name): 
@@ -87,11 +117,31 @@ def create_registered_agents_from_yaml(yaml_file):
     with open(yaml_file, "r") as file: 
         yaml_data = yaml.safe_load(file)
         for assistant in yaml_data['assistants']:
+
+            real_provider = None
+            if 'real_provider' in assistant.keys():
+                 real_provider = assistant['real_provider']
+
+            real_model = None
+            if 'real_model' in assistant.keys():
+                 real_model = assistant['real_model']
+
+            real_role = None
+            if 'real_role' in assistant.keys():
+                 real_role = assistant['real_role']
+
             name = assistant['name']
             description = assistant['role']
             instructions = assistant['background']
 
-            create_registered_agent_by_name(name=name, description=description, instructions=instructions)
+
+            create_registered_agent_by_name(name=name, 
+                                            description=description, 
+                                            instructions=instructions, 
+                                            real_provider=real_provider,
+                                            real_model=real_model,
+                                            real_role=real_role )
+            
 
 
 def delete_all_registered_agents() :
@@ -130,7 +180,7 @@ class AutoExecAssistant(BaseAssistant):
         cls._reference_class_abc = openai.types.beta.assistant.Assistant 
         assistant =   super().create(**kwargs)
 
-        add_registered_agent_in_registry(id=assistant.id, common_name=assistant.name, communication_channel=listen_thread.id)
+        add_registered_agent_in_registry(id=assistant.id, real_role=assistant.real_role, common_name=assistant.name, communication_channel=listen_thread.id)
         return assistant
     
 
@@ -138,7 +188,10 @@ class AutoExecAssistant(BaseAssistant):
     def delete(cls:Type[T], assistant_id):
         _a = cls.retrieve(assistant_id=assistant_id)
 
-        AutoExecListenThread.delete(thread_id=_a.listen_thread)
+        try :
+            AutoExecListenThread.delete(thread_id=_a.listen_thread)
+        except openai.NotFoundError as nfe: 
+             print(str(nfe))
 
         delete_registered_agent_from_registry(id=assistant_id)
 
