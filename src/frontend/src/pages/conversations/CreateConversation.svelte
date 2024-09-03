@@ -5,6 +5,8 @@
     let name = '';
     let maxMessages = 5;
 
+    let isLoading = false
+
     import { createConversation, getActiveConversations, getInactiveConversations } from "../../dataservices";
 
     // Function to handle form submission
@@ -14,8 +16,10 @@
         // You can handle the form data here
         console.log('Name:', name);
         console.log('Max Messages:', maxMessages);
+        isLoading = true
         const response = await createConversation(name, maxMessages)
-
+        isLoading = false
+        
         if (response == "ok") {
             console.log("ok")
 
@@ -47,6 +51,11 @@
 
     <!-- Create Button -->
     <button type="submit">Create</button>
+
+    {#if isLoading}
+        <div class="hourglass">⏳ Loading...</div>
+    {/if}
+
 </form>
 
 
@@ -58,6 +67,11 @@
         padding: 1rem;
         border: 1px solid #ccc;
         border-radius: 5px;
+    }
+
+    .hourglass {
+        font-size: 20px;
+        color: #999;
     }
 
     div {

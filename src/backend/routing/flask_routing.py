@@ -3,7 +3,8 @@ from flask import jsonify, request
 
 from routing.providers import get_providers as providers, get_models as models
 
-from routing.agents import get_agents as agents, get_agent_details as agent_details
+from routing.agents import get_agents as agents, get_agent_details as agent_details, get_registered_agent_by_name
+
 from routing.conversations import get_active_conversations as active_conversations, get_inactive_conversations as inactive_conversations, delete_all_inactive_conversations
 
 from routing.conversations import get_conversation as conversation, create_conversation, set_conversation_type
@@ -14,10 +15,14 @@ from flask_socketio import SocketIO
 
 from butils import list_active_subscription_threads
 
-from routing.websockets import post_request
+from routing.websockets import post_request,update_story_state, delete_message
+
 
 MAP_WS_FUNCS = {
-    'post_request': post_request
+    'post_request': post_request,
+    'update_story_state': update_story_state,
+    'delete_message': delete_message
+    
 }
 
 def index(): 

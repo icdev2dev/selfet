@@ -2,21 +2,18 @@ import json
 from .assistants.autoexecassistant import AutoExecAssistant, get_registry_thread, delete_all_registered_agents
 from .assistants.autoexecassistant import create_registered_agents_from_yaml, list_registered_agents_in_registry
 
-
 from .threads.listen import AutoExecListenThread
-
 
 def get_agents() : 
     return    [x.name for x in AutoExecAssistant.list()]
 
-
 def get_agent_details(agent_name) : 
-
     agent_details = {
     }
 
     for agent in AutoExecAssistant.list():
         if agent.name == agent_name: 
+            agent_details['id'] = agent.id
             agent_details['role'] = agent.description
             agent_details['instructions'] = agent.instructions
             agent_details['communication_channel'] = find_communication_channel_for_agent(common_name=agent_name)
@@ -67,11 +64,7 @@ def get_number_of_messages_in_communication_channel(communication_channel_thread
         else:
             break
 
-    print(countMsgs)
-
-
     return countMsgs
-
 
 
 

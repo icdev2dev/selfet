@@ -34,7 +34,20 @@ def list_registered_agents_in_registry():
         registry_thread = get_registry_thread()
         if registry_thread: 
             return [msg.content[0].text.value for msg in registry_thread.list_messages()]
-        
+
+def get_registered_agent_by_name(name:str) -> str:
+
+    registry_thread = get_registry_thread()
+
+    if registry_thread: 
+            for msg in registry_thread.list_messages():
+                value = msg.content[0].text.value
+                jvalue = json.loads(value)
+                if jvalue['common_name'] == name:
+                    return jvalue['id']
+
+    return None
+
 
 def list_human_agents_in_registry():
         registry_thread = get_registry_thread()

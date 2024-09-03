@@ -22,7 +22,7 @@
     let selectedConversation
     let selectedConversationId
     let selectedOption = "MMA"; // Default radio option
-    let selectedDropdownOption = "";
+    let selectedGlobalOperation = ""
 
     const options = {
         "MMA": [],
@@ -30,8 +30,40 @@
         "AMA": ["Balanced", "RoundRobin"],
     };
 
+    const messageTypes = ["Update", "Review"]
+    let selectedMessageType = "Update"
+
+    const storyStates = ["Draft", "Ignore", "Final"]
+    let selectedStoryState = "Draft"
+
+
     $: additionalOptions = options[selectedOption];
 
+
+    async function handleSelectedGlobalOperationChange() {
+
+        if (selectedConversation.msgs == undefined) {
+
+        } 
+        else if (selectedConversation.msgs.length < 2) {
+
+        }
+        else {
+            let lastMessage = selectedConversation.msgs[selectedConversation.msgs.length - 1];
+            isLoading = true            
+            for (let msg of selectedConversation.msgs) {
+                if (msg.message_id != lastMessage.message_id) {
+
+                    msg.story_state = selectedGlobalOperation
+                    await updateStoryState(msg.thread_id, msg.message_id, selectedGlobalOperation);
+                }
+            }
+
+            isLoading = false
+            selectedConversation.msgs = [...selectedConversation.msgs];
+
+        }
+    }
 
     async function handleConversationTypeChange(newType) {
         console.log("Selected Thread Id:", selectedConversationId);
@@ -77,13 +109,64 @@
         selectedConversationId = null
     }
 
-    async function clicked_post_message() {
+    async function handleDeleteMessage(message) {
 
         try {
 
+
+            const originalMessages = [...selectedConversation.msgs];
+            selectedConversation.msgs = selectedConversation.msgs.filter(
+                (msg) => msg.message_id !== message.message_id
+            );
+            await deleleMessage(message.thread_id, message.message_id);
+
+        } catch(err) {
+            console.log(err)
+        }
+    }
+
+    async function  deleleMessage(thread_id, message_id) {
+        try {
+            socket.emit("request_response", {
+                realRequest: "delete_message",
+                thread_id: thread_id, 
+                message_id: message_id
+            });
+        } catch (err) {
+            console.log(err)
+        }
+        
+    }
+    async function handleStoryStateChange(message) {
+        try {
+            // Make the API call to update the story_state in the backend
+
+            await updateStoryState(message.thread_id, message.message_id, message.story_state);
+        } catch (error) {
+            console.error("Failed to update story state:", error);
+        }
+    }
+
+    async function updateStoryState(thread_id, message_id, message_story_state) {
+        try {
+            console.log(thread_id)
+            socket.emit("request_response", {
+                realRequest: "update_story_state",
+                thread_id: thread_id, 
+                message_id: message_id, 
+                message_story_state: message_story_state
+            });
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    async function clicked_post_message() {
+
+        try {
             isLoading = true;
             confirmationMessage = '';
-
             socket.emit("request_response", {
                                              realRequest: 'post_request',
                                              realRequestData: textmsg.value, 
@@ -98,7 +181,7 @@
                 isLoading = false;
 
                 if (response.status === 'success') {
-                    confirmationMessage = 'Post was successful!';
+                    confirmationMessage = 'successful!';
                 } else {
                     confirmationMessage = 'Post failed: ' + response.error;
                 }
@@ -148,6 +231,8 @@
 
         socket.on('newMessageAdded', async(data) => {
             console.log("New Message has been added !")
+            confirmationMessage = '';
+
             try {
                 selectedConversation = await getConversation(selectedConversationId)
             } catch(err) {
@@ -182,7 +267,7 @@
             </div>
 
             <div class="horizontal-elements">
-                Conversation
+                Convo
                 <select bind:value={selectedConversationId} on:change={handleSelectedConversationChange}>
                     {#each $activeConversations as conversation}
                         <option value={conversation.id}>{conversation.name}</option>
@@ -204,9 +289,6 @@
                 {#if confirmationMessage}
                     <div class="confirmation">{confirmationMessage}</div>
                 {/if}
-            </div>
-    <!-- Radio selection for agent mode -->
-            <div class="horizontal-elements">
 
                 <div class="vertical-selects-with-borders">
                     Conversation Type
@@ -224,9 +306,14 @@
                             <input type="radio" value="AMA" bind:group={selectedOption}>
                             AMA
                         </label>
-                    </div>
+                </div>
 
-                    <div>
+            </div>
+    <!-- Radio selection for agent mode -->
+            <div class="horizontal-elements">
+
+                
+            <div>
 
                         <label for="additionalOptions">Additional Options</label>
                         <select id="additionalOptions">
@@ -259,7 +346,7 @@
 
     <div class="container">
 
-        <div class="details">
+        <div class="details-msgs">
             {#if isLoading}
                 <p>Loading conversation details...</p>
             {:else if error}
@@ -271,10 +358,90 @@
                     <p>1..No messages available.</p>
                 {:else}
                     {#if selectedConversation.msgs.length > 0}
-                            {#each selectedConversation.msgs as message}
+                            {#each selectedConversation.msgs as message, index}
                                 <div class="user-message">
+                                    <div class="horizontal-elements-in-msg">
+
+                                        <div class="vertical-selects">
+                                            Message State
+                                            <select style="width: 150px;  height: 25px" bind:value={message.story_state} on:change={() => handleStoryStateChange(message)}>
+                                                {#each storyStates as storyState}
+                                                    <option value={storyState}>{storyState}</option>
+                                                {/each}
+                                            </select>
+
+                                        </div>
+                                                                     
+                                        <button on:click={() => handleDeleteMessage(message)}> Delete Message </button>
+                                    </div>
                                     {@html displayMessage(message.text)}
+
+                                    {#if index === selectedConversation.msgs.length - 1}
+
+
+                                        <div class="horizontal-elements-in-msg">
+                                            <div class="vertical-selects">
+                                                Message Type
+                                                <select style="width: 150px;  height: 25px" bind:value={selectedMessageType}>
+                                                    {#each messageTypes as messageType}
+                                                        <option value={messageType}>{messageType}</option>
+                                                    {/each}
+                                                </select>
+                            
+                                            </div>
+
+                                            <div class="vertical-selects">
+                                                <div> Message </div>
+                                                <textarea bind:this={textmsg} style="width: 550px;  height: 25px"> </textarea>
+                                            </div>
+                                            <div class="vertical-selects">
+                                                Agent
+                                                <select style="width: 150px;  height: 25px" bind:value={selectedAgent} on:change={handleSelectedAgentChange}>
+                                                    {#each $agents as agent}
+                                                        <option value={agent.name}>{agent.name}</option>
+                                                    {/each}
+                                                </select>
+                                            </div>
+                                            <div  class="vertical-selects">
+                                                <div>
+                                                    Action
+                                                </div>
+                                                <div>
+                                                    <button style="width: 80px;  height: 30px;" on:click={clicked_post_message}>Post</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="vertical-selects">
+                                                Set all Other Messages to 
+                                                <select style="width: 150px;  height: 25px" bind:value={selectedGlobalOperation} on:change={handleSelectedGlobalOperationChange}>
+                                                    {#each storyStates as globalOperation}
+                                                        <option value={globalOperation}>{globalOperation}</option>
+                                                    {/each}
+                                                </select>
+                                            </div>
+
+
+
+                                            {#if isLoading}
+                                                <div class="hourglass">⏳ Loading...</div>
+                                            {/if}
+
+        <!-- Show confirmation message when available -->
+                                            {#if confirmationMessage}
+                                                <div class="confirmation">{confirmationMessage}</div>
+                                            {/if}
+
+                                        </div>
+
+                                    <!-- This will be displayed only after the last message -->
+                                                                <div class="last-message">
+                                                                <!-- Add your special content here -->
+                                    </div>
+                                    {/if}
+                            
+
                                 </div>
+
                             {/each}
                     {:else}
                         <p>No messages available.</p>
@@ -343,8 +510,19 @@
         display: flex;
         gap: 20px;
     }
+    .horizontal-elements-in-msg {
+        display: flex;
+        width: 100%; /* Optional: to make the select elements full-width */
+
+        gap: 20px;
+    }
     .details {
         flex: 1; /* Takes up the remaining space (80%) */
+        padding: 10px;
+        box-sizing: border-box; /* Ensures padding is included in the width */
+    }
+    .details-msgs {
+        flex: 2;
         padding: 10px;
         box-sizing: border-box; /* Ensures padding is included in the width */
     }
@@ -352,7 +530,7 @@
     .user-message{
         background-color: #4f8df5;
         color: hwb(0 95% 4%);
-        align-self: flex-start;
+/*        align-self: flex-start; */
         text-align: left;
         border: #989191;
         

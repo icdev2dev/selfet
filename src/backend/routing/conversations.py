@@ -188,7 +188,7 @@ def get_conversation(conversationId:str):
     msgs = []
     for msg in list_messages:
 
-        msgs.append({'originator': msg.originator, 'text': msg.content[0]['text'].value})
+        msgs.append({'thread_id': conversationId , 'message_id': msg.id , 'originator': msg.originator,'story_state': msg.story_state ,'text': msg.content[0]['text'].value})
 
     ret_val['msgs'] = msgs
 

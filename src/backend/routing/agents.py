@@ -3,7 +3,7 @@ import copy
 import openai
 
 from bmodels import get_agents as real_get_agents, get_agent_details
-from butils import post_message
+from butils import post_message, get_registered_agent_by_name
 from flask import jsonify
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
@@ -18,8 +18,6 @@ ASSISTANT_WATCH_SLEEP_TIME = 5
 
 def get_agents() : 
     return jsonify([{'name': x} for x in real_get_agents()])
-
-
 
 
 async def run_assistant(assistant_id, entity_list, socketio): 

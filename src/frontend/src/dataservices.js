@@ -7,6 +7,8 @@ export const auth = writable(
 )
 
 export const agents = writable([])
+export const brainstormingAgent = writable()
+
 export const activeConversations = writable([])
 export const inactiveConversations = writable([])
 
@@ -165,17 +167,32 @@ export async function get_agents() {
 
 export async function get_agent_details(agent_name) {
     const response = await fetch(url+ `/agent_details/`+agent_name);
-    
-
     if (response.ok) {
-        const data = await response.json()
-        
+        const data = await response.json()        
         return data
     } else {
         return 
     }
-
 }
+
+
+export async function get_brainstorming_agent() {
+    
+    
+    const response = await fetch(url+ `/agent_details/`+'Gyan');
+    if (response.ok) {
+        const data = await response.json()        
+        brainstormingAgent.set(data.id)
+
+        return data
+    } else {
+        return 
+    }
+}
+
+
+
+
 
 
 export async function postMessage(request, originator, index=0) {
@@ -206,6 +223,8 @@ export async function fetchAllData() {
         await getActiveConversations()
         await getInactiveConversations()
 
+        await get_brainstorming_agent()
+        
         
     //    await get_models()
         

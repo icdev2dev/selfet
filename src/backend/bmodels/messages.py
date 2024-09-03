@@ -16,7 +16,17 @@ class AutoExecPostMessage (BaseMessage):
 
 class AutoExecSubMessage(BaseMessage):
     originator:Optional[str] = Field(default="")
+
+    # specialized for stories
+    story_state:Optional[str] = Field(default="Draft")
+    reference_message_id:Optional[str] = Field(default="")
     
+
+    def update_story_state(self, story_state:str):
+        self.story_state = story_state
+        return super().update(story_state=self.story_state)
+
+    # end specialized for stories
 
 def post_message_on_subscription_channel(thread_id, content, name):
     AutoExecSubMessage.create(thread_id=thread_id, content=content, originator=name)

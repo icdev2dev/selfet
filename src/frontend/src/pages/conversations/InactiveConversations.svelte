@@ -1,7 +1,15 @@
 
 <script>
 
-    import {inactiveConversations, getConversation, deleteAllInactiveConversations} from "../../dataservices"
+    import {onMount} from "svelte"
+
+    import {inactiveConversations, 
+            getConversation, 
+            deleteAllInactiveConversations, 
+            getInactiveConversations
+        } from "../../dataservices";
+
+
     import { marked } from "marked";
     let selectedConversationId
     let selectedConversation = null
@@ -9,7 +17,10 @@
     let isLoading = false
     let error = null;
 
-
+    onMount(()=> {
+        getInactiveConversations()
+        
+    })
     // Function to fetch conversation details using getConversation
     async function fetchConversationDetails(id) {
         isLoading = true;

@@ -73,6 +73,8 @@ class AutoExecSubThread(BaseThread):
     hwm:Optional[str] = Field(default="")
     conversation_type:Optional[str] = Field(default="MMA")
 
+    # Specialized for stories
+    
 
     @classmethod
     def create(cls:Type[T], **kwargs) -> T:

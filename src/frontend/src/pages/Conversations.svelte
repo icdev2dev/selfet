@@ -12,7 +12,6 @@
         {name:'Archived Conversations', route: 'archivedConversations', component: ArchivedConversationsPage},
         {name:'Create New Conversation', route: 'createConversation', component: CreateConversationPage},
 
-
     ]
 
 </script>

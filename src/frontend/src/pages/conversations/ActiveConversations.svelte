@@ -1,7 +1,9 @@
 
 <script>
 
-    import {activeConversations, getConversation} from "../../dataservices"
+    import {onMount} from "svelte"
+
+    import {activeConversations, getConversation, getActiveConversations} from "../../dataservices"
     import { marked } from "marked";
     let selectedConversationId
     let selectedConversation = null
@@ -9,6 +11,12 @@
     let isLoading = false
     let error = null;
 
+
+    onMount(()=> {
+        isLoading = true
+        getActiveConversations()
+        isLoading = false
+    });
 
     // Function to fetch conversation details using getConversation
     async function fetchConversationDetails(id) {
@@ -47,6 +55,10 @@
 <div class="container">
     <!-- Selection div -->
     <div class="selection">
+        {#if isLoading}
+            <div class="hourglass">⏳ Loading...</div>
+        {/if}
+
         <h4>Select a Conversation</h4>
         {#each $activeConversations as conversation}
             <div>
@@ -105,6 +117,11 @@
 </div>
 
 <style>
+
+    .hourglass {
+            font-size: 20px;
+            color: #999;
+        }
 
     .container {
         display: flex;

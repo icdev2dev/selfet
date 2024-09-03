@@ -7,6 +7,7 @@
     import Home from "../pages/Home.svelte";
     import ConversationsPage from "../pages/Conversations.svelte";
     import AgentsPage from "../pages/Agents.svelte";
+    import BrainStormPage from "../pages/BrainStorm.svelte";
 
     import Navbar from "../components/Navbar.svelte";
 
@@ -22,7 +23,9 @@
     let tabs = [
         { name: 'Home', route: '/', component: Home, path: "/" },
         { name: 'Conversations', route: '/conversations', component: ConversationsPage, path: "/conversations"},
-        { name: 'Agents', route: '/agents', component: AgentsPage, path: "/agents"}
+        { name: 'Agents', route: '/agents', component: AgentsPage, path: "/agents"},
+        { name: 'Brainstorm', route: '/brainstorm', component: BrainStormPage, path: "/brainstorm"}
+        
     ]
 
 </script>
@@ -40,6 +43,11 @@
         return null; // Return null since we're only redirecting
     }} />
     
+    <Route path="/agents" component={() => {
+        navigate("/agents/creatorAgents");
+        return null; // Return null since we're only redirecting
+    }} />
+    
 
     {#each tabs as tab}
         <Route path={tab.path} component={tab.component}></Route>
@@ -48,6 +56,8 @@
 
 
     <Route path="/conversations/*" component={ConversationsPage} />
+    <Route path="/agents/*" component={AgentsPage} />
+    <Route path="/brainstorm" component={BrainStormPage} />
 
 </div>
 

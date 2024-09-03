@@ -6,7 +6,9 @@ from bmodels.messages import AutoExecSubMessage
 from bmodels.messages import AutoExecListenMessage
 
 from bmodels.threads.sub import AutoExecSubThread
-from bmodels.assistants.autoexecassistant import AutoExecAssistant, list_human_agents_in_registry
+from bmodels.assistants.autoexecassistant import AutoExecAssistant, list_human_agents_in_registry, get_registered_agent_by_name
+
+
 
 from tools_utils import tools_function, include_all_tools_functions
 
